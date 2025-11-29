@@ -39,6 +39,8 @@ public class Main extends EngineFrame {
     private GuiButton btnAdicionarAresta;
     private GuiButton btnRemoverVertice;
     private GuiSpinner spinnerVerticeDestino;
+    private GuiButton btnProfundidade;
+    private GuiButton btnLargura;
     
     private boolean mouseForaDaIMGUI;
             
@@ -97,6 +99,8 @@ public class Main extends EngineFrame {
         btnAdicionarAresta = new GuiButton(325, 25, 120, 30, "Adicionar Aresta");
         btnRemoverVertice = new GuiButton(475, 25, 120, 30, "Remover Vertice");
         spinnerVerticeDestino = new GuiSpinner(615, 25, 100, 30, 0, 0, 0);
+        btnLargura = new GuiButton(725, 25, 120, 30, "Largura");
+        btnProfundidade = new GuiButton(850, 25, 120, 30, "Profundidade");
         
         setDefaultFontSize(20);
         setDefaultStrokeLineWidth(2);
@@ -111,6 +115,8 @@ public class Main extends EngineFrame {
         componentes.add(btnAdicionarAresta);
         componentes.add(btnRemoverVertice);
         componentes.add(spinnerVerticeDestino);
+        componentes.add(btnLargura);
+        componentes.add(btnProfundidade);
         
     }
     
@@ -169,6 +175,53 @@ public class Main extends EngineFrame {
         if (btnRemoverVertice.isMousePressed()){
             grafo.rmvVertice(verticeAtual);
         }
+        
+        //Buscas
+        if (btnLargura.isMousePressed()){
+            grafo.bfs(0);
+        }
+        
+        if (btnProfundidade.isMousePressed()){
+            grafo.dfs(0);
+        }
+        
+        //Controle da Câmera
+        if (isKeyDown(KEY_UP)) {
+            cameraPos.y += cameraVel * delta;
+        }
+
+        if (isKeyDown(KEY_DOWN)) {
+            cameraPos.y -= cameraVel * delta;
+        }
+
+        if (isKeyDown(KEY_LEFT)) {
+            cameraPos.x += cameraVel * delta;
+        }
+
+        if (isKeyDown(KEY_RIGHT)) {
+            cameraPos.x -= cameraVel * delta;
+        }
+
+        //Zoom da Câmera
+        if (getMouseWheelMove() < 0) {
+            camera.zoom -= 1 * delta;
+        }
+
+        if (getMouseWheelMove() > 0) {
+            camera.zoom += 1 * delta;
+        }
+
+        //Resetar Câmera
+        if (isKeyDown(KEY_R)) {
+            camera.rotation = 0;
+            camera.zoom = 1;
+            camera.target.x = 0;
+            camera.target.y = 0;
+        }
+
+        //Atualizar Câmera
+        camera.target.x = cameraPos.x;
+        camera.target.y = cameraPos.y;
         
         //Github
         if (btnLink.isMousePressed()) {

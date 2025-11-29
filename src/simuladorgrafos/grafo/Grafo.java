@@ -2,10 +2,11 @@ package simuladorgrafos.grafo;
 
 import br.com.davidbuzatto.jsge.core.engine.EngineFrame;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.TreeMap;
-import simuladorgrafos.grafo.Vertice;
 
 /**
  *
@@ -105,6 +106,64 @@ public class Grafo {
 
         return sb.toString().trim();
 
+    }
+    
+    public void dfs(int idInicial) {
+        Vertice start = vertices.get(idInicial);
+        if (start == null) {
+            return;
+        }
+
+        // Marca visitados
+        Map<Integer, Boolean> visitado = new TreeMap<>();
+
+        System.out.println("DFS:");
+        dfsVisitar(start, visitado);
+    }
+
+    private void dfsVisitar(Vertice v, Map<Integer, Boolean> visitado) {
+
+        visitado.put(v.id, true);
+        System.out.println("Visitou: " + v.id);
+
+        List<Aresta> lista = st.getOrDefault(v, new ArrayList<>());
+        for (Aresta a : lista) {
+            Vertice dest = a.destino;
+            if (!visitado.containsKey(dest.id)) {
+                dfsVisitar(dest, visitado);
+            }
+        }
+    }
+    
+    public void bfs(int idInicial) {
+        Vertice start = vertices.get(idInicial);
+        if (start == null) {
+            return;
+        }
+
+        Map<Integer, Boolean> visitado = new TreeMap<>();
+        Queue<Vertice> fila = new LinkedList<>();
+
+        fila.add(start);
+        visitado.put(start.id, true);
+
+        System.out.println("BFS:");
+
+        while (!fila.isEmpty()) {
+
+            Vertice atual = fila.poll();
+            System.out.println("Visitou: " + atual.id);
+
+            List<Aresta> lista = st.getOrDefault(atual, new ArrayList<>());
+            for (Aresta a : lista) {
+                Vertice dest = a.destino;
+
+                if (!visitado.containsKey(dest.id)) {
+                    visitado.put(dest.id, true);
+                    fila.add(dest);
+                }
+            }
+        }
     }
 
 }
