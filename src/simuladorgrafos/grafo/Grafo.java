@@ -15,6 +15,7 @@ public class Grafo {
 
     public Map<Vertice, List<Aresta>> st;
     public Map<Integer, Vertice> vertices;
+    private int ids = 0;
 
     public Grafo() {
         st = new TreeMap<>();
@@ -22,10 +23,31 @@ public class Grafo {
     }
 
     public Vertice addVertice(double x, double y) {
-        Vertice v = new Vertice(vertices.size(), x, y);
+        Vertice v = new Vertice(ids, x, y);
         vertices.put(v.id, v);
+        ids++;
         return v;
     }
+    
+    public void rmvVertice(int id) {
+
+        Vertice alvo = vertices.get(id);
+
+        for (var listaArestas : st.values()) {
+
+            for (int i = listaArestas.size() - 1; i >= 0; i--) {
+                Aresta a = listaArestas.get(i);
+
+                if (a.origem.id == id || a.destino.id == id) {
+                    listaArestas.remove(i);
+                }
+            }
+        }
+
+        st.remove(alvo);
+        vertices.remove(id);
+    }
+
 
     public void addAresta(int origem, int destino) {
         Vertice vo = vertices.get(origem);
@@ -45,7 +67,7 @@ public class Grafo {
     }
 
     public int getQuantidadeVertices() {
-        return vertices.size();
+        return ids;
     }
 
     public void draw(EngineFrame e) {

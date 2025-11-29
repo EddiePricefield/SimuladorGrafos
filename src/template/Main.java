@@ -166,6 +166,10 @@ public class Main extends EngineFrame {
             grafo.addAresta(verticeAtual, spinnerVerticeDestino.getValue());
         }
         
+        if (btnRemoverVertice.isMousePressed()){
+            grafo.rmvVertice(verticeAtual);
+        }
+        
         //Github
         if (btnLink.isMousePressed()) {
 
