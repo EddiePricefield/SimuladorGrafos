@@ -8,13 +8,13 @@ import br.com.davidbuzatto.jsge.imgui.GuiButton;
 import br.com.davidbuzatto.jsge.imgui.GuiButtonGroup;
 import br.com.davidbuzatto.jsge.imgui.GuiComponent;
 import br.com.davidbuzatto.jsge.imgui.GuiLabelButton;
-import br.com.davidbuzatto.jsge.imgui.GuiSpinner;
 import br.com.davidbuzatto.jsge.imgui.GuiToggleButton;
 import br.com.davidbuzatto.jsge.math.Vector2;
 import java.awt.Desktop;
 import java.awt.Paint;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import simuladorgrafos.grafo.Grafo;
 
@@ -41,7 +41,7 @@ public class Main extends EngineFrame {
     private GuiButton btnProfundidade;
     private GuiButton btnLargura;
     
-    private boolean mouseForaDaIMGUI;
+    private boolean mouseForaDaIMGUI; //Mais facil fazer isso daqui pra conferir se o mouse ta em cima de algum botão
             
     private GuiLabelButton btnLink;
     
@@ -52,8 +52,8 @@ public class Main extends EngineFrame {
     
     //Grafo
     private Grafo grafo;
-    private int verticeAtual;
-    private int verticeAdicionar;
+    private int verticeAtual = -1;
+    private int verticeAdicionar = -1;
     private boolean verticeClicado;
     
     public Main() {
@@ -158,6 +158,7 @@ public class Main extends EngineFrame {
                     grafo.vertices.get(verticeAtual).corVertice = RED;
                 }else{
                     verticeAtual = -1;
+                    verticeAdicionar = -1;
                 }
                 
             }
@@ -166,6 +167,11 @@ public class Main extends EngineFrame {
                 grafo.addVertice(mousePos.x, mousePos.y);
             }
 
+        }
+        
+        if (btnAdicionarVertice.isSelected() && verticeAtual != -1 && verticeAdicionar != -1){
+            grafo.vertices.get(verticeAtual).corVertice = WHITE;
+            grafo.vertices.get(verticeAdicionar).corVertice = WHITE;
         }
         
         //Opções Extras
@@ -181,11 +187,20 @@ public class Main extends EngineFrame {
         
         //Buscas
         if (btnLargura.isMousePressed()){
-            grafo.bfs(0);
+            if (verticeAtual != -1){
+                grafo.bfs(verticeAtual);
+            }else{
+               grafo.bfs(Collections.min(grafo.vertices.keySet())); 
+            }
+            
         }
         
         if (btnProfundidade.isMousePressed()){
-            grafo.dfs(0);
+            if (verticeAtual != -1){
+                grafo.dfs(verticeAtual);
+            }else{
+               grafo.bfs(Collections.min(grafo.vertices.keySet())); 
+            }
         }
         
         //Controle da Câmera
@@ -249,6 +264,7 @@ public class Main extends EngineFrame {
         
         //Desenhar o Grafo
         beginMode2D(camera);
+        drawLine(0, 0, 500, 500, PINK);
         grafo.draw(this);
         endMode2D();
         
@@ -295,6 +311,52 @@ public class Main extends EngineFrame {
         drawText(text, posX + outlineSize, posY + outlineSize, fontSize, outlineColor);
         drawText(text, posX, posY, fontSize, color);
     }
+    
+    public Vector2[] pontaCirculo(Vector2 circuloInicial, Vector2 circuloFinal, int raio){
+        
+        Vector2[] pontasDosCirculos = new Vector2[2];
+        
+        double distX = circuloFinal.x - circuloInicial.x;
+        double distY = circuloFinal.y - circuloInicial.y;
+        
+        double hipotenusa = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+        
+        pontasDosCirculos[0] = new Vector2(circuloInicial.x + (distX / hipotenusa) * raio, circuloInicial.y + (distY / hipotenusa) * raio);
+        pontasDosCirculos[1] = new Vector2(circuloFinal.x - (distX / hipotenusa) * raio, circuloFinal.y - (distY / hipotenusa) * raio);
+        
+        return pontasDosCirculos;
+        
+    }
+    
+    public Vector2[] posParaSetas(Vector2 posInicial, Vector2 posFinal, int tamanho, int abertura){
+        
+        Vector2[] posDasSetas = new Vector2[2];
+        
+        double distX = posFinal.x - posInicial.x;
+        double distY = posFinal.y - posInicial.y;
+
+        double hipotenusa = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
+        double normX = distX / hipotenusa;
+        double normY = distY / hipotenusa;
+
+        posDasSetas[0] = new Vector2(posFinal.x - normX * tamanho + normY * abertura, posFinal.y - normY * tamanho - normX * abertura);
+        posDasSetas[1] = new Vector2(posFinal.x - normX * tamanho - normY * abertura, posFinal.y - normY * tamanho + normX * abertura);
+        
+        return posDasSetas;
+    }
+    
+    public void desenharSeta(Vector2 vetorIni, Vector2 vetorFim, int raio, int tamanho, int abertura, Paint cor) {
+
+        Vector2[] linha = pontaCirculo(vetorIni, vetorFim, raio);
+
+        drawLine(linha[0], linha[1], cor);
+
+        Vector2[] seta = posParaSetas(linha[0], linha[1], tamanho, abertura);
+
+        drawLine(linha[1], seta[0], cor);
+        drawLine(linha[1], seta[1], cor);
+    }
+
     
     //----------< Instanciar Engine e Iniciá-la >----------//
 
