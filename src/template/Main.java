@@ -202,7 +202,7 @@ public class Main extends EngineFrame {
             if (verticeAtual != -1){
                ordemBusca = grafo.dfs(verticeAtual);
             }else{
-               ordemBusca = grafo.bfs(Collections.min(grafo.vertices.keySet())); 
+               ordemBusca = grafo.dfs(Collections.min(grafo.vertices.keySet())); 
             }
         }
         
