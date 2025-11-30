@@ -36,9 +36,8 @@ public class Main extends EngineFrame {
     private GuiButtonGroup buttonGroup;
     private GuiToggleButton btnSelecionarVertice;
     private GuiToggleButton btnAdicionarVertice;
-    private GuiButton btnAdicionarAresta;
+    private GuiToggleButton btnAdicionarAresta;
     private GuiButton btnRemoverVertice;
-    private GuiSpinner spinnerVerticeDestino;
     private GuiButton btnProfundidade;
     private GuiButton btnLargura;
     
@@ -54,6 +53,7 @@ public class Main extends EngineFrame {
     //Grafo
     private Grafo grafo;
     private int verticeAtual;
+    private int verticeAdicionar;
     private boolean verticeClicado;
     
     public Main() {
@@ -96,9 +96,8 @@ public class Main extends EngineFrame {
         btnAdicionarVertice = new GuiToggleButton(175, 25, 120, 30, "Adicionar Vértice");
         btnSelecionarVertice.setButtonGroup(buttonGroup);
         btnAdicionarVertice.setButtonGroup(buttonGroup);
-        btnAdicionarAresta = new GuiButton(325, 25, 120, 30, "Adicionar Aresta");
+        btnAdicionarAresta = new GuiToggleButton(325, 25, 120, 30, "Adicionar Aresta");
         btnRemoverVertice = new GuiButton(475, 25, 120, 30, "Remover Vertice");
-        spinnerVerticeDestino = new GuiSpinner(615, 25, 100, 30, 0, 0, 0);
         btnLargura = new GuiButton(725, 25, 120, 30, "Largura");
         btnProfundidade = new GuiButton(850, 25, 120, 30, "Profundidade");
         
@@ -114,7 +113,6 @@ public class Main extends EngineFrame {
         componentes.add(btnAdicionarVertice);
         componentes.add(btnAdicionarAresta);
         componentes.add(btnRemoverVertice);
-        componentes.add(spinnerVerticeDestino);
         componentes.add(btnLargura);
         componentes.add(btnProfundidade);
         
@@ -140,17 +138,25 @@ public class Main extends EngineFrame {
                     Vector2 centro = new Vector2(vertice.pos.x, vertice.pos.y);
 
                     if (CollisionUtils.checkCollisionPointCircle(mousePos, centro, 30)) {
-                        vertice.corVertice = RED;
-                        verticeAtual = vertice.id;
-                        verticeClicado = true;
-                        System.out.println(verticeAtual);
+                        if (!btnAdicionarAresta.isSelected()) {
+                            verticeAtual = vertice.id;
+                            verticeClicado = true;
+                        }else if (btnAdicionarAresta.isSelected()){
+                            vertice.corVertice = BLUE;
+                            verticeAdicionar = vertice.id;
+                            grafo.addAresta(verticeAtual, verticeAdicionar);
+                            verticeClicado = true;
+                        }
+                        
                     } else{
                         vertice.corVertice = WHITE;
                     }
 
                 }
                 
-                if(!verticeClicado){
+                if(verticeClicado){
+                    grafo.vertices.get(verticeAtual).corVertice = RED;
+                }else{
                     verticeAtual = -1;
                 }
                 
@@ -163,14 +169,11 @@ public class Main extends EngineFrame {
         }
         
         //Opções Extras
+        if (!verticeClicado){
+            btnAdicionarAresta.setSelected(false);
+        }
         btnAdicionarAresta.setEnabled(verticeClicado);
         btnRemoverVertice.setEnabled(verticeClicado);
-        spinnerVerticeDestino.setEnabled(verticeClicado);
-        spinnerVerticeDestino.setMax(grafo.getQuantidadeVertices() - 1);
-        
-        if (btnAdicionarAresta.isMousePressed()){
-            grafo.addAresta(verticeAtual, spinnerVerticeDestino.getValue());
-        }
         
         if (btnRemoverVertice.isMousePressed()){
             grafo.rmvVertice(verticeAtual);
