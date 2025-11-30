@@ -108,60 +108,53 @@ public class Grafo {
 
     }
     
-    public void dfs(int idInicial) {
-        Vertice start = vertices.get(idInicial);
-        if (start == null) {
-            return;
-        }
+    public List<int[]> bfs(int s) {
+        int V = getQuantidadeVertices();
 
-        // Marca visitados
-        Map<Integer, Boolean> visitado = new TreeMap<>();
+        boolean[] marked = new boolean[V];
+        Queue<Integer> queue = new LinkedList<>();
+        List<int[]> passos = new ArrayList<>();
 
-        System.out.println("DFS:");
-        dfsVisitar(start, visitado);
-    }
+        queue.offer(s);
+        marked[s] = true;
 
-    private void dfsVisitar(Vertice v, Map<Integer, Boolean> visitado) {
+        while (!queue.isEmpty()) {
+            int v = queue.poll();
 
-        visitado.put(v.id, true);
-        System.out.println("Visitou: " + v.id);
+            for (Aresta aresta : adjacentes(v)) {
+                int w = aresta.destino.id;
 
-        List<Aresta> lista = st.getOrDefault(v, new ArrayList<>());
-        for (Aresta a : lista) {
-            Vertice dest = a.destino;
-            if (!visitado.containsKey(dest.id)) {
-                dfsVisitar(dest, visitado);
+                if (!marked[w]) {
+                    queue.offer(w);
+                    marked[w] = true;
+                    passos.add(new int[]{v, w});
+                }
             }
         }
+
+        return passos;
     }
     
-    public void bfs(int idInicial) {
-        Vertice start = vertices.get(idInicial);
-        if (start == null) {
-            return;
-        }
+    public List<int[]> dfs(int s) {
+        int V = getQuantidadeVertices();
 
-        Map<Integer, Boolean> visitado = new TreeMap<>();
-        Queue<Vertice> fila = new LinkedList<>();
+        boolean[] marked = new boolean[V];
+        List<int[]> passos = new ArrayList<>();
 
-        fila.add(start);
-        visitado.put(start.id, true);
+        dfsVisitar(s, marked, passos);
 
-        System.out.println("BFS:");
+        return passos;
+    }
 
-        while (!fila.isEmpty()) {
+    private void dfsVisitar(int v, boolean[] marked, List<int[]> passos) {
+        marked[v] = true;
 
-            Vertice atual = fila.poll();
-            System.out.println("Visitou: " + atual.id);
+        for (Aresta aresta : adjacentes(v)) {
+            int w = aresta.destino.id;
 
-            List<Aresta> lista = st.getOrDefault(atual, new ArrayList<>());
-            for (Aresta a : lista) {
-                Vertice dest = a.destino;
-
-                if (!visitado.containsKey(dest.id)) {
-                    visitado.put(dest.id, true);
-                    fila.add(dest);
-                }
+            if (!marked[w]) {
+                passos.add(new int[]{v, w});
+                dfsVisitar(w, marked, passos);
             }
         }
     }

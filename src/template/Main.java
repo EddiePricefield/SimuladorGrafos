@@ -55,6 +55,8 @@ public class Main extends EngineFrame {
     private int verticeAtual = -1;
     private int verticeAdicionar = -1;
     private boolean verticeClicado;
+    private boolean desenharBusca;
+    private List<int[]> ordemBusca;
     
     public Main() {
         
@@ -83,6 +85,7 @@ public class Main extends EngineFrame {
         componentes = new ArrayList<>();
         buttonGroup = new GuiButtonGroup();
         grafo = new Grafo();
+        ordemBusca = new ArrayList<>();
         
         //Criação da Câmera
         cameraPos = new Vector2(0, 0);
@@ -188,19 +191,25 @@ public class Main extends EngineFrame {
         //Buscas
         if (btnLargura.isMousePressed()){
             if (verticeAtual != -1){
-                grafo.bfs(verticeAtual);
+               ordemBusca = grafo.bfs(verticeAtual);
             }else{
-               grafo.bfs(Collections.min(grafo.vertices.keySet())); 
+               ordemBusca = grafo.bfs(Collections.min(grafo.vertices.keySet())); 
             }
             
         }
         
         if (btnProfundidade.isMousePressed()){
             if (verticeAtual != -1){
-                grafo.dfs(verticeAtual);
+               ordemBusca = grafo.dfs(verticeAtual);
             }else{
-               grafo.bfs(Collections.min(grafo.vertices.keySet())); 
+               ordemBusca = grafo.bfs(Collections.min(grafo.vertices.keySet())); 
             }
+        }
+        
+        if (btnProfundidade.isMouseDown() || btnLargura.isMouseDown()){
+            desenharBusca = true;
+        }else{
+            desenharBusca = false;
         }
         
         //Controle da Câmera
@@ -264,8 +273,21 @@ public class Main extends EngineFrame {
         
         //Desenhar o Grafo
         beginMode2D(camera);
-        drawLine(0, 0, 500, 500, PINK);
+        
+        setDefaultStrokeLineWidth(2);
         grafo.draw(this);
+        
+        if (desenharBusca) {
+            for (int[] p : ordemBusca) {
+                
+                int de = p[0];
+                int para = p[1];
+
+                desenharSeta(grafo.vertices.get(de).pos, grafo.vertices.get(para).pos, 30, 15, 20,GREEN);
+                
+            }
+        }
+
         endMode2D();
         
         //Design
@@ -346,7 +368,8 @@ public class Main extends EngineFrame {
     }
     
     public void desenharSeta(Vector2 vetorIni, Vector2 vetorFim, int raio, int tamanho, int abertura, Paint cor) {
-
+        
+        setStrokeLineWidth(4);
         Vector2[] linha = pontaCirculo(vetorIni, vetorFim, raio);
 
         drawLine(linha[0], linha[1], cor);
