@@ -4,12 +4,19 @@ import br.com.davidbuzatto.jsge.collision.CollisionUtils;
 import br.com.davidbuzatto.jsge.core.Camera2D;
 import br.com.davidbuzatto.jsge.core.engine.EngineFrame;
 import static br.com.davidbuzatto.jsge.core.engine.EngineFrame.GRAY;
+import static br.com.davidbuzatto.jsge.core.engine.EngineFrame.KEY_DOWN;
+import static br.com.davidbuzatto.jsge.core.engine.EngineFrame.KEY_LEFT;
+import static br.com.davidbuzatto.jsge.core.engine.EngineFrame.KEY_R;
+import static br.com.davidbuzatto.jsge.core.engine.EngineFrame.KEY_RIGHT;
+import static br.com.davidbuzatto.jsge.core.engine.EngineFrame.KEY_UP;
+import static br.com.davidbuzatto.jsge.core.engine.EngineFrame.LIGHTGRAY;
 import br.com.davidbuzatto.jsge.imgui.GuiButton;
 import br.com.davidbuzatto.jsge.imgui.GuiButtonGroup;
 import br.com.davidbuzatto.jsge.imgui.GuiComponent;
 import br.com.davidbuzatto.jsge.imgui.GuiLabelButton;
 import br.com.davidbuzatto.jsge.imgui.GuiToggleButton;
 import br.com.davidbuzatto.jsge.math.Vector2;
+import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Paint;
 import java.net.URI;
@@ -28,8 +35,8 @@ import simuladorgrafos.grafo.Grafo;
 public class Main extends EngineFrame {
     
     //Esquema de Cores
-    private Paint background = BEIGE;
-    private Paint corComponentes = ORANGE;
+    private Paint background = LIGHTGRAY;
+    private Paint corComponentes = BEIGE;
     
     //Componentes
     private List<GuiComponent> componentes;
@@ -50,6 +57,14 @@ public class Main extends EngineFrame {
     private Vector2 cameraPos;
     private final double cameraVel = 300;
     
+    private GuiButton btnCamE;
+    private GuiButton btnCamD;
+    private GuiButton btnCamB;
+    private GuiButton btnCamC;
+    private GuiButton btnCamReset;
+    private GuiButton btnCamMais;
+    private GuiButton btnCamMenos;
+    
     //Grafo
     private Grafo grafo;
     private int verticeAtual = -1;
@@ -63,7 +78,7 @@ public class Main extends EngineFrame {
         super(
             1200,                 // largura                      / width
             600,                 // algura                       / height
-            "Window Title",      // título                       / title
+            "Simulador Grafos - Buscas (BFS & DFS)",      // título                       / title
             60,                  // quadros por segundo desejado / target FPS
             true,                // suavização                   / antialiasing
             false,               // redimensionável              / resizable
@@ -95,23 +110,38 @@ public class Main extends EngineFrame {
         camera.zoom = 1;
         
         //Criação dos Componentes
-        btnSelecionarVertice = new GuiToggleButton(25, 25, 120, 30, "Selecionar");
-        btnAdicionarVertice = new GuiToggleButton(175, 25, 120, 30, "Adicionar Vértice");
+        btnCamC = new GuiButton(1095, 460, 30, 30, "🡹");
+        btnCamB = new GuiButton(1095, 530, 30, 30, "🡻");
+        btnCamE = new GuiButton(1060, 495, 30, 30, "🡸");
+        btnCamD = new GuiButton(1130, 495, 30, 30, "🡺");
+        btnCamReset = new GuiButton(1100, 500, 20, 20, "R");
+        btnCamMais = new GuiButton(1145, 390, 30, 30, "➕");
+        btnCamMenos = new GuiButton(990, 540, 30, 30, "➖");
+        
+        btnSelecionarVertice = new GuiToggleButton(15, 150, 120, 30, "Selecionar");
+        btnAdicionarVertice = new GuiToggleButton(15, 240, 120, 30, "ADD Vértice");
         btnSelecionarVertice.setButtonGroup(buttonGroup);
         btnAdicionarVertice.setButtonGroup(buttonGroup);
-        btnAdicionarAresta = new GuiToggleButton(325, 25, 120, 30, "Adicionar Aresta");
-        btnRemoverVertice = new GuiButton(475, 25, 120, 30, "Remover Vertice");
-        btnLargura = new GuiButton(725, 25, 120, 30, "Largura");
-        btnProfundidade = new GuiButton(850, 25, 120, 30, "Profundidade");
+        btnAdicionarAresta = new GuiToggleButton(15, 340, 120, 30, "ADD Aresta");
+        btnRemoverVertice = new GuiButton(15, 290, 120, 30, "RMV Vertice");
+        btnLargura = new GuiButton(15, 430, 120, 30, "Largura");
+        btnProfundidade = new GuiButton(15, 480, 120, 30, "Profundidade");
         
         setDefaultFontSize(20);
         setDefaultStrokeLineWidth(2);
         setDefaultStrokeEndCap(STROKE_CAP_ROUND);
         
-        btnLink = new GuiLabelButton(getWidth() - 140, getHeight() - 65, 120, 20, "@EddiePricefield");
+        btnLink = new GuiLabelButton(18, getHeight() - 65, 120, 20, "@EddiePricefield");
         
         //Adicionar à Lista de Componentes
         componentes.add(btnLink);
+        componentes.add(btnCamC);
+        componentes.add(btnCamB);
+        componentes.add(btnCamE);
+        componentes.add(btnCamD);
+        componentes.add(btnCamReset);
+        componentes.add(btnCamMais);
+        componentes.add(btnCamMenos);
         componentes.add(btnSelecionarVertice);
         componentes.add(btnAdicionarVertice);
         componentes.add(btnAdicionarAresta);
@@ -152,7 +182,7 @@ public class Main extends EngineFrame {
                         }
                         
                     } else{
-                        vertice.corVertice = WHITE;
+                        vertice.corVertice = corComponentes;
                     }
 
                 }
@@ -173,8 +203,8 @@ public class Main extends EngineFrame {
         }
         
         if (btnAdicionarVertice.isSelected() && verticeAtual != -1 && verticeAdicionar != -1){
-            grafo.vertices.get(verticeAtual).corVertice = WHITE;
-            grafo.vertices.get(verticeAdicionar).corVertice = WHITE;
+            grafo.vertices.get(verticeAtual).corVertice = corComponentes;
+            grafo.vertices.get(verticeAdicionar).corVertice = corComponentes;
         }
         
         //Opções Extras
@@ -186,6 +216,14 @@ public class Main extends EngineFrame {
         
         if (btnRemoverVertice.isMousePressed()){
             grafo.rmvVertice(verticeAtual);
+        }
+        
+        if (grafo.vertices.isEmpty()){
+            btnProfundidade.setEnabled(false);
+            btnLargura.setEnabled(false);
+        }else{
+            btnProfundidade.setEnabled(true);
+            btnLargura.setEnabled(true);
         }
         
         //Buscas
@@ -212,43 +250,66 @@ public class Main extends EngineFrame {
             desenharBusca = false;
         }
         
-        //Controle da Câmera
-        if (isKeyDown(KEY_UP)) {
-            cameraPos.y += cameraVel * delta;
-        }
+        //Joystick (Movimento da Câmera)
+        Color fundoBotao = LIGHTGRAY;
+        Color cliqueBotao = new Color(151, 232, 255, 255);
 
-        if (isKeyDown(KEY_DOWN)) {
+        if (isKeyDown(KEY_UP) || btnCamC.isMouseDown()) {
             cameraPos.y -= cameraVel * delta;
+            btnCamC.setBackgroundColor(cliqueBotao);
+        } else {
+            btnCamC.setBackgroundColor(fundoBotao);
         }
 
-        if (isKeyDown(KEY_LEFT)) {
-            cameraPos.x += cameraVel * delta;
+        if (isKeyDown(KEY_DOWN) || btnCamB.isMouseDown()) {
+            cameraPos.y += cameraVel * delta;
+            btnCamB.setBackgroundColor(cliqueBotao);
+        } else {
+            btnCamB.setBackgroundColor(fundoBotao);
         }
 
-        if (isKeyDown(KEY_RIGHT)) {
+        if (isKeyDown(KEY_LEFT) || btnCamE.isMouseDown()) {
             cameraPos.x -= cameraVel * delta;
+            btnCamE.setBackgroundColor(cliqueBotao);
+        } else {
+            btnCamE.setBackgroundColor(fundoBotao);
         }
 
-        //Zoom da Câmera
-        if (getMouseWheelMove() < 0) {
-            camera.zoom -= 1 * delta;
-        }
-
-        if (getMouseWheelMove() > 0) {
-            camera.zoom += 1 * delta;
+        if (isKeyDown(KEY_RIGHT) || btnCamD.isMouseDown()) {
+            cameraPos.x += cameraVel * delta;
+            btnCamD.setBackgroundColor(cliqueBotao);
+        } else {
+            btnCamD.setBackgroundColor(fundoBotao);
         }
 
         //Resetar Câmera
-        if (isKeyDown(KEY_R)) {
+        if (isKeyDown(KEY_R) || btnCamReset.isMousePressed()) {
             camera.rotation = 0;
             camera.zoom = 1;
             camera.target.x = 0;
             camera.target.y = 0;
+            btnCamReset.setBackgroundColor(cliqueBotao);
+        } else {
+            btnCamReset.setBackgroundColor(fundoBotao);
+        }
+
+        //Zoom da Câmera
+        if (getMouseWheelMove() < 0 || btnCamMenos.isMouseDown()) {
+            camera.zoom -= 1 * delta;
+            btnCamMenos.setBackgroundColor(cliqueBotao);
+        } else {
+            btnCamMenos.setBackgroundColor(fundoBotao);
+        }
+
+        if (getMouseWheelMove() > 0 || btnCamMais.isMouseDown()) {
+            camera.zoom += 1 * delta;
+            btnCamMais.setBackgroundColor(cliqueBotao);
+        } else {
+            btnCamMais.setBackgroundColor(fundoBotao);
         }
 
         //Atualizar Câmera
-        camera.target.x = cameraPos.x;
-        camera.target.y = cameraPos.y;
+        camera.target = new Vector2(cameraPos.x, cameraPos.y);
         
         //Github
         if (btnLink.isMousePressed()) {
@@ -269,7 +330,7 @@ public class Main extends EngineFrame {
     @Override
     public void draw() {
         
-        clearBackground( background );
+        clearBackground( WHITE );
         
         //Desenhar o Grafo
         beginMode2D(camera);
@@ -283,7 +344,7 @@ public class Main extends EngineFrame {
                 int de = p[0];
                 int para = p[1];
 
-                desenharSeta(grafo.vertices.get(de).pos, grafo.vertices.get(para).pos, 30, 15, 20,GREEN);
+                desenharSeta(grafo.vertices.get(de).pos, grafo.vertices.get(para).pos, 30, 15, 10,GREEN);
                 
             }
         }
@@ -291,6 +352,24 @@ public class Main extends EngineFrame {
         endMode2D();
         
         //Design
+        fillRectangle(0, 0, 150, 600, corComponentes);
+        fillRectangle(0, 0, 1200, 25, corComponentes);
+        fillRectangle(0, 575, 1200, 600, corComponentes);
+        fillRectangle(1175, 0, 1200, 600, corComponentes);
+        drawRectangle(150, 25, 1025, 550, BLACK);
+        
+        fillTriangle(900, 600, 1200, 600, 1200, 300, corComponentes);
+        drawTriangle(900, 600, 1200, 600, 1200, 300, BLACK);
+        fillCircle(1110, 510, 70, background);
+        drawCircle(1110, 510, 70, BLACK);
+        fillCircle(1160, 405, 30, background);
+        drawCircle(1160, 405, 30, BLACK);
+        fillCircle(1005, 555, 30, background);
+        drawCircle(1005, 555, 30, BLACK);
+        
+        fillRoundRectangle(50, 50, 200, 50, 50, background);
+        drawRoundRectangle(50, 50, 200, 50, 50, BLACK);
+        drawOutlinedText("Grafos", 90, 63, 35, corComponentes, 1, BLACK);
         
         desenharComponentes();
         
@@ -306,6 +385,7 @@ public class Main extends EngineFrame {
         for (GuiComponent c : componentes) {
             if (!componentes.isEmpty()) {
                 c.update(delta);
+                c.setBorderColor(BLACK);
             }
             
             if (c.isMousePressed()){
@@ -369,7 +449,7 @@ public class Main extends EngineFrame {
     
     public void desenharSeta(Vector2 vetorIni, Vector2 vetorFim, int raio, int tamanho, int abertura, Paint cor) {
         
-        setStrokeLineWidth(4);
+        setStrokeLineWidth(5);
         Vector2[] linha = pontaCirculo(vetorIni, vetorFim, raio);
 
         drawLine(linha[0], linha[1], cor);

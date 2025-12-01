@@ -13,7 +13,7 @@ public class Vertice implements Comparable<Vertice> {
     
     public int id;
     public Vector2 pos;
-    public Paint corVertice = EngineFrame.WHITE;
+    public Paint corVertice = EngineFrame.BEIGE;
 
     public Vertice( int id, double x, double y ) {
         this.id = id;
